@@ -1,0 +1,30 @@
+import scrapy
+import json
+import codecs
+from scrapy.spider import Spider
+from scrapy.http import Request
+from tutorial.items import QueryItem
+class QuerySpider(Spider):
+    name = "query"
+    allowed_domains = ["opendata.baidu.com"]
+    start_urls = ['http://opendata.baidu.com/api.php?resource_id=28213&query=%E4%BC%8A%E8%B1%86%E5%9C%A8%E5%93%AA%E9%87%8C']
+    
+    def __init__(self):
+        print "init\n"
+        self.i = 0
+        f = open("28213", "r")
+        self.liststr = []
+        while True:  
+            line = f.readline()  
+            if line:  
+                self.liststr.append(line.strip('\n').decode('gbk'))      
+            else:
+                break
+
+    def parse(self,response):
+            item = QueryItem()
+            item['data'] = response.xpath("//text()").extract()
+            yield item
+            url = 'http://opendata.baidu.com/api.php?resource_id=28213&query='+self.liststr[self.i]
+            self.i+=1
+            yield Request(url, callback=self.parse)
